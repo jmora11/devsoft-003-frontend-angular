@@ -2,10 +2,10 @@ import { Injectable } from '@angular/core';
 import { Cliente } from './cliente';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
-import { HttpClient, HttpHeaders, HttpRequest, HttpEvent } from '@angular/common/http';
-import Swal from 'sweetalert2';
+import { HttpClient, HttpRequest, HttpEvent } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { formatDate } from '@angular/common';
+import { Region } from './region';
 
 @Injectable({
   providedIn: 'root'
@@ -13,14 +13,17 @@ import { formatDate } from '@angular/common';
 export class ClienteService {
 
   private endpoint: string = 'http://localhost:8080/api/clientes';
-  private httpHeaders = new HttpHeaders({ 'Content-Type': 'application/json' });
 
+  constructor(private http: HttpClient,
+    private router: Router) { }
 
-  constructor(private http: HttpClient, private router: Router) { }
+  getRegiones(): Observable<Region[]> {
+    return this.http.get<Region[]>(`${this.endpoint}/regiones`);
+  }
 
   getClientes(page: number): Observable<any> {
 
-    return this.http.get(this.endpoint + '/page/' +page).pipe(
+    return this.http.get(this.endpoint + '/page/' + page).pipe(
       map((res: any) => {
 
         (res.content as Cliente[]).map(cliente => {
@@ -36,7 +39,7 @@ export class ClienteService {
   }
 
   createClient(cliente: Cliente): Observable<Cliente> {
-    return this.http.post(this.endpoint, cliente, { headers: this.httpHeaders }).pipe(
+    return this.http.post(this.endpoint, cliente).pipe(
       map((response: any) => response.cliente as Cliente),
       catchError(e => {
 
@@ -44,12 +47,6 @@ export class ClienteService {
           return throwError(e);
         }
 
-        console.log('Error', e.error.mensaje);
-        Swal.fire({
-          icon: 'error',
-          title: e.error.mensaje,
-          text: e.error.error
-        });
         return throwError(e);
       })
     );
@@ -58,49 +55,30 @@ export class ClienteService {
   getCliente(id: number): Observable<Cliente> {
     return this.http.get<Cliente>(`${this.endpoint}/${id}`).pipe(
       catchError(e => {
-        this.router.navigate(['/clientes']);
-        console.log('Error', e.error.mensaje);
-        Swal.fire({
-          icon: 'error',
-          title: 'Error al consultar cliente',
-          text: e.error.mensaje
-        });
+        if (e.status != 401) {
+          this.router.navigate(['/clientes']);
+        }
         return throwError(e)
       })
     );
   }
 
   updateCliente(cliente: Cliente): Observable<any> {
-    return this.http.put<any>(`${this.endpoint}/${cliente.id}`, cliente, { headers: this.httpHeaders }).pipe(
+    return this.http.put<any>(`${this.endpoint}/${cliente.id}`, cliente).pipe(
       catchError(e => {
 
         if (e.status == 400) {
           return throwError(e);
         }
 
-        console.log('Error', e.error.mensaje);
-        Swal.fire({
-          icon: 'error',
-          title: e.error.mensaje,
-          text: e.error.error
-        });
         return throwError(e)
       })
     );
   }
 
   deleteCliente(id: number): Observable<Cliente> {
-    return this.http.delete<Cliente>(`${this.endpoint}/${id}`, { headers: this.httpHeaders }).pipe(
-      catchError(e => {
-        console.log('Error', e.error.mensaje);
-        Swal.fire({
-          icon: 'error',
-          title: e.error.mensaje,
-          text: e.error.error
-        });
-        return throwError(e)
-      })
-    );
+    return this.http.delete<Cliente>(`${this.endpoint}/${id}`).pipe(
+      catchError(e => throwError(e)));
   }
 
   subirFoto(archivo: File, id): Observable<HttpEvent<{}>> {

@@ -11,10 +11,22 @@
                     <a class="nav-link" routerLink="/clientes">Clientes</a>
                 </li>
             </ul>
-            <form class="d-flex">
-                <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
-                <button class="btn btn-outline-success" type="submit">Search</button>
-            </form>
+            <ul class="navbar-nav navbar-right">
+
+                <li *ngIf="!authService.isAutheticated()">
+                    <a [routerLink]="['/login']" class="btn btn-outline-primary">Sign In</a>
+                </li>
+
+                <li *ngIf="authService.isAutheticated()" class="dropdown">
+                    <a class="btn btn-outline-primary dropdown-toggle" href="#" id="dropdownMenuLink"
+                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    {{authService.usuario.username}}
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                      <button (click)="logout()" class="dropdown-item" type="submit">Cerrar sesión</button>
+                    </div>
+                </li>
+            </ul>
         </div>
     </div>
 </nav>
