@@ -53,7 +53,7 @@ export class FormComponent implements OnInit {
           icon: 'success',
           title: 'Añadir cliente',
           text: `Cliente ${cliente.nombre} creado con éxito`
-        })
+        });
       }, err => {
         this.errores = err.error.errors as string[];
         console.log('StausCode', err.status);
@@ -63,6 +63,7 @@ export class FormComponent implements OnInit {
   }
 
   update(): void {
+    this.cliente.facturas = null;
     this.clienteService.updateCliente(this.cliente).subscribe(
       json => {
         this.router.navigate(['/clientes'])
